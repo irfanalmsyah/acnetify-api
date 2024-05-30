@@ -3,6 +3,8 @@
 import { addDocument, imageSubmissionRef } from "@db/firestore"
 import { ImageSubmissionDTO } from "@interfaces/dto.interface"
 import { ACNE_TYPE } from "@interfaces/enum.interface"
+import { v4 as uuidv4 } from "uuid"
+const { bucket } = require('./storageConfig');
 
 export const predictAcneType = async (image: Buffer) => {
     // TODO: Implement image classification model
@@ -11,7 +13,30 @@ export const predictAcneType = async (image: Buffer) => {
 
 export const uploadImageToStorage = async (image: Buffer) => {
     // TODO: Implement image upload to cloud storage
-    return "https://example.com/image.jpg"
+    const fileName = `image-${uuidv4()}.jpg`; // Membuat nama file unik dengan UUID
+    const file = bucket.file(fileName);
+
+    const stream = file.createWriteStream({
+        metadata: {
+        contentType: 'image/jpeg', // Sesuaikan dengan jenis mime yang tepat
+        },
+        resumable: false,
+    });
+
+    return new Promise<string>((resolve, reject) => {
+        stream.on('error', (err: Error) => {
+            reject(new Error(`Failed to upload image: ${err.message}`));
+        });
+
+        stream.on('finish', async () => {
+            // Membuat file dapat diakses secara publik
+            await file.makePublic();
+            // Mengembalikan URL publik dari gambar yang diunggah
+            resolve(`https://storage.googleapis.com/${bucket.name}/${file.name}`);
+        });
+
+        stream.end(image);
+    });
 }
 
 export const createImageSubmission = async (
