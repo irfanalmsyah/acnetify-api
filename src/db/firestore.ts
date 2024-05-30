@@ -1,6 +1,9 @@
 import { CollectionReference, DocumentData, DocumentReference, Firestore } from "@google-cloud/firestore"
 
-export const db = new Firestore()
+export const db = new Firestore({
+    projectId: 'capstone-acnetify',
+    keyFilename: 'keyfile.json',
+  });
 
 export const userRef = db.collection("user")
 export const reviewRef = db.collection("review")
