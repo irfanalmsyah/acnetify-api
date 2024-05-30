@@ -1,6 +1,5 @@
-const { Storage } = require('@google-cloud/storage');
+import { Storage } from "@google-cloud/storage"
 
-// Menginisialisasi instance storage
 const storage = new Storage({
   projectId: 'capstone-acnetify',
   keyFilename: 'keyfile.json'
