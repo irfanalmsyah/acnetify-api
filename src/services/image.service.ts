@@ -4,7 +4,7 @@ import { addDocument, imageSubmissionRef } from "@db/firestore"
 import { ImageSubmissionDTO } from "@interfaces/dto.interface"
 import { ACNE_TYPE } from "@interfaces/enum.interface"
 import { v4 as uuidv4 } from "uuid"
-const { bucket } = require('./storageConfig');
+import { bucket } from "./bucket.service"
 
 export const predictAcneType = async (image: Buffer) => {
     // TODO: Implement image classification model
