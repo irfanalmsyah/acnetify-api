@@ -1,10 +1,12 @@
-// TODO: Remove the following line
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { addDocument, imageSubmissionRef } from "@db/firestore"
 import { ImageSubmissionDTO } from "@interfaces/dto.interface"
 import { ACNE_TYPE } from "@interfaces/enum.interface"
 import { v4 as uuidv4 } from "uuid"
+import moment from "moment"
 import { bucket } from "./bucket.service"
+
+const timestamp = moment().format('YYYY-MM-DD_at_HH.mm.ss');
+const uuid = uuidv4().slice(0, 8);
 
 export const predictAcneType = async (image: Buffer) => {
     // TODO: Implement image classification model
@@ -12,7 +14,7 @@ export const predictAcneType = async (image: Buffer) => {
 }
 
 export const uploadImageToStorage = async (image: Buffer) => {
-    const fileName = `image-${uuidv4()}.jpg`;
+    const fileName = `acne_image_${timestamp}_${uuid}.jpg`;
     const file = bucket.file(fileName);
 
     const stream = file.createWriteStream({
