@@ -12,13 +12,12 @@ export const predictAcneType = async (image: Buffer) => {
 }
 
 export const uploadImageToStorage = async (image: Buffer) => {
-    // TODO: Implement image upload to cloud storage
-    const fileName = `image-${uuidv4()}.jpg`; // Membuat nama file unik dengan UUID
+    const fileName = `image-${uuidv4()}.jpg`;
     const file = bucket.file(fileName);
 
     const stream = file.createWriteStream({
         metadata: {
-        contentType: 'image/jpeg', // Sesuaikan dengan jenis mime yang tepat
+        contentType: 'image/jpeg',
         },
         resumable: false,
     });
@@ -29,9 +28,7 @@ export const uploadImageToStorage = async (image: Buffer) => {
         });
 
         stream.on('finish', async () => {
-            // Membuat file dapat diakses secara publik
             await file.makePublic();
-            // Mengembalikan URL publik dari gambar yang diunggah
             resolve(`https://storage.googleapis.com/${bucket.name}/${file.name}`);
         });
 
