@@ -3,6 +3,12 @@
 import { addDocument, imageSubmissionRef } from "@db/firestore"
 import { ImageSubmissionDTO } from "@interfaces/dto.interface"
 import { ACNE_TYPE } from "@interfaces/enum.interface"
+import { v4 as uuidv4 } from "uuid"
+import moment from "moment"
+import { bucket } from "./bucket.service"
+
+const timestamp = moment().format('YYYY-MM-DD_at_HH.mm.ss');
+const uuid = uuidv4().slice(0, 8);
 
 export const predictAcneType = async (image: Buffer) => {
     // TODO: Implement image classification model
@@ -10,8 +16,28 @@ export const predictAcneType = async (image: Buffer) => {
 }
 
 export const uploadImageToStorage = async (image: Buffer) => {
-    // TODO: Implement image upload to cloud storage
-    return "https://example.com/image.jpg"
+    const fileName = `acne_image_${timestamp}_${uuid}.jpg`;
+    const file = bucket.file(fileName);
+
+    const stream = file.createWriteStream({
+        metadata: {
+        contentType: 'image/jpeg',
+        },
+        resumable: false,
+    });
+
+    return new Promise<string>((resolve, reject) => {
+        stream.on('error', (err: Error) => {
+            reject(new Error(`Failed to upload image: ${err.message}`));
+        });
+
+        stream.on('finish', async () => {
+            await file.makePublic();
+            resolve(`https://storage.googleapis.com/${bucket.name}/${file.name}`);
+        });
+
+        stream.end(image);
+    });
 }
 
 export const createImageSubmission = async (
