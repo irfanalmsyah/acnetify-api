@@ -20,7 +20,6 @@ export const uploadAcneImageController = async (req: Request, res: Response) => 
         }
         const imageURL = await uploadImageToStorage(image)
         await createImageSubmission(userId, imageURL, prediction)
-        console.log("Image URL: ", imageURL)
 
         responseSuccess(res, prediction)
     } catch (error: unknown) {
