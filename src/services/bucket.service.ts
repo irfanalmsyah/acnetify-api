@@ -6,7 +6,6 @@ const storage = new Storage({
   keyFilename: env.GCP_KEY_FILE_PATH
 });
 
-// Memilih bucket yang akan digunakan
 export const bucket = storage.bucket('image-capstone-acnetify');
 
 
