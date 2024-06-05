@@ -1,3 +1,5 @@
+// TODO: Remove the following line
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { addDocument, imageSubmissionRef } from "@db/firestore"
 import { ImageSubmissionDTO } from "@interfaces/dto.interface"
 import { ACNE_TYPE } from "@interfaces/enum.interface"
