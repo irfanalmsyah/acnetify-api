@@ -14,7 +14,7 @@ import { getMyImagesByAcneTypeSchema } from "@schemas/image.schema"
 
 const authRoutes = Router()
 authRoutes.post("/register", registerSchema, registerController)
-authRoutes.get("/login", loginSchema, loginController)
+authRoutes.post("/login", loginSchema, loginController)
 
 const reviewRoutes = Router()
 reviewRoutes.get("/", publicMiddleware, getReviewsSchema, getReviewsController)
