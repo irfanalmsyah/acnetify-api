@@ -7,12 +7,47 @@ import { v4 as uuidv4 } from "uuid"
 import moment from "moment"
 import { bucket } from "./bucket.service"
 
+import { loadModel } from "./loadmodel.service"
+import * as tf from '@tensorflow/tfjs-node';
+
 const timestamp = moment().format('YYYY-MM-DD_at_HH.mm.ss');
 const uuid = uuidv4().slice(0, 8);
 
+let model: tf.GraphModel | null = null;
+
+const ACNE_TYPE_MAP: { [key: number]: ACNE_TYPE } = {
+    0: ACNE_TYPE.ACNE_NODULES,
+    1: ACNE_TYPE.BLACKHEAD,
+    2: ACNE_TYPE.MILIA,
+    3: ACNE_TYPE.PAPULA_PUSTULA,
+    4: ACNE_TYPE.WHITEHEAD
+};
+
 export const predictAcneType = async (image: Buffer) => {
-    // TODO: Implement image classification model
-    return ACNE_TYPE.ACNE_NODULES
+    if (!model) {
+        model = await loadModel();
+    }
+    try {
+        const tensor = tf.node
+            .decodeJpeg(image)
+            .resizeNearestNeighbor([299, 299])
+            .expandDims()
+            .toFloat();
+
+        const prediction = model.predict(tensor) as tf.Tensor;
+        const score = prediction.dataSync();
+        const maxScoreIndex = score.indexOf(Math.max(...score));
+
+        const result = ACNE_TYPE_MAP[maxScoreIndex] || null;
+
+        return result;
+    } catch (error) {
+        if (error instanceof Error) {
+            throw new Error(`Error occurred: ${error.message}`);
+        } else {
+            throw new Error('An unknown error occurred');
+        }
+    }
 }
 
 export const uploadImageToStorage = async (image: Buffer) => {
