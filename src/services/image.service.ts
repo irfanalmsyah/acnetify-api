@@ -1,5 +1,3 @@
-// TODO: Remove the following line
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { addDocument, imageSubmissionRef } from "@db/firestore"
 import { ImageSubmissionDTO } from "@interfaces/dto.interface"
 import { ACNE_TYPE } from "@interfaces/enum.interface"
@@ -7,14 +5,11 @@ import { v4 as uuidv4 } from "uuid"
 import moment from "moment"
 import { bucket } from "./bucket.service"
 
-const timestamp = moment().format('YYYY-MM-DD_at_HH.mm.ss');
-const uuid = uuidv4().slice(0, 8);
 
-import { loadModel } from "./loadmodel.service"
+
 import * as tf from '@tensorflow/tfjs-node';
+import app from "server"
 
-
-let model: tf.GraphModel | null = null;
 
 const ACNE_TYPE_MAP: { [key: number]: ACNE_TYPE } = {
     0: ACNE_TYPE.ACNE_NODULES,
@@ -25,23 +20,16 @@ const ACNE_TYPE_MAP: { [key: number]: ACNE_TYPE } = {
 };
 
 export const predictAcneType = async (image: Buffer) => {
-    if (!model) {
-        try {
-            model = await loadModel();
-        } catch (error) {
-            console.error("Failed to load model:", error);
-            throw error;
-        }
-    }
     try {
-        const tensor = tf.node.decodeImage(image, 3)
+        const tensor = tf.node
+            .decodeImage(image)
             .resizeBilinear([150, 150])
             .div(tf.scalar(255))
-            .expandDims();
+            .expandDims(0);
 
-        const prediction = model.predict(tensor) as tf.Tensor;
+        const prediction = app.get("model").predict(tensor) as tf.Tensor;
+
         const score = prediction.dataSync();
-
         console.log("Prediction scores:", score);
 
         const maxScoreIndex = score.indexOf(Math.max(...score));
@@ -53,6 +41,7 @@ export const predictAcneType = async (image: Buffer) => {
         console.log("Predicted Acne Type:", result);
 
         return result;
+
     } catch (error) {
         if (error instanceof Error) {
             throw new Error(`Error occurred: ${error.message}`);
@@ -63,6 +52,9 @@ export const predictAcneType = async (image: Buffer) => {
 }
 
 export const uploadImageToStorage = async (image: Buffer) => {
+    const timestamp = moment().format('YYYY-MM-DD_at_HH.mm.ss');
+    const uuid = uuidv4().slice(0, 8);
+
     const fileName = `acne_image_${timestamp}_${uuid}.jpg`;
     const file = bucket.file(fileName);
 
