@@ -15,7 +15,7 @@ module.exports = {
     "plugins": [
         "@typescript-eslint"
     ],
-    "ignores": [
+    "ignorePatterns": [
         "node_modules",
         "build",
     ],
@@ -23,10 +23,6 @@ module.exports = {
         "indent": [
             "error",
             4
-        ],
-        "linebreak-style": [
-            "error",
-            "unix"
         ],
         "quotes": [
             "error",
