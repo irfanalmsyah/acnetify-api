@@ -7,11 +7,12 @@ import { v4 as uuidv4 } from "uuid"
 import moment from "moment"
 import { bucket } from "./bucket.service"
 
+const timestamp = moment().format('YYYY-MM-DD_at_HH.mm.ss');
+const uuid = uuidv4().slice(0, 8);
+
 import { loadModel } from "./loadmodel.service"
 import * as tf from '@tensorflow/tfjs-node';
 
-const timestamp = moment().format('YYYY-MM-DD_at_HH.mm.ss');
-const uuid = uuidv4().slice(0, 8);
 
 let model: tf.GraphModel | null = null;
 
@@ -25,20 +26,31 @@ const ACNE_TYPE_MAP: { [key: number]: ACNE_TYPE } = {
 
 export const predictAcneType = async (image: Buffer) => {
     if (!model) {
-        model = await loadModel();
+        try {
+            model = await loadModel();
+        } catch (error) {
+            console.error("Failed to load model:", error);
+            throw error;
+        }
     }
     try {
-        const tensor = tf.node
-            .decodeJpeg(image)
-            .resizeNearestNeighbor([299, 299])
-            .expandDims()
-            .toFloat();
+        const tensor = tf.node.decodeImage(image, 3)
+            .resizeBilinear([150, 150])
+            .div(tf.scalar(255))
+            .expandDims();
 
         const prediction = model.predict(tensor) as tf.Tensor;
         const score = prediction.dataSync();
+
+        console.log("Prediction scores:", score);
+
         const maxScoreIndex = score.indexOf(Math.max(...score));
 
+        console.log("Selected index:", maxScoreIndex);
+
         const result = ACNE_TYPE_MAP[maxScoreIndex] || null;
+
+        console.log("Predicted Acne Type:", result);
 
         return result;
     } catch (error) {
