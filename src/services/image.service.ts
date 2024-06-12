@@ -5,10 +5,11 @@ import { v4 as uuidv4 } from "uuid"
 import moment from "moment"
 import { bucket } from "./bucket.service"
 
+import { Express } from "express"
 
-
-import * as tf from '@tensorflow/tfjs-node';
+import * as tf from "@tensorflow/tfjs-node"
 import app from "server"
+import { loadModel } from "./loadmodel.service"
 
 
 const ACNE_TYPE_MAP: { [key: number]: ACNE_TYPE } = {
@@ -17,7 +18,7 @@ const ACNE_TYPE_MAP: { [key: number]: ACNE_TYPE } = {
     2: ACNE_TYPE.MILIA,
     3: ACNE_TYPE.PAPULA_PUSTULA,
     4: ACNE_TYPE.WHITEHEAD
-};
+}
 
 export const predictAcneType = async (image: Buffer) => {
     try {
@@ -25,58 +26,58 @@ export const predictAcneType = async (image: Buffer) => {
             .decodeImage(image)
             .resizeBilinear([150, 150])
             .div(tf.scalar(255))
-            .expandDims(0);
+            .expandDims(0)
 
-        const prediction = app.get("model").predict(tensor) as tf.Tensor;
+        const prediction = app.get("model").predict(tensor) as tf.Tensor
 
-        const score = prediction.dataSync();
-        console.log("Prediction scores:", score);
+        const score = prediction.dataSync()
+        console.log("Prediction scores:", score)
 
-        const maxScoreIndex = score.indexOf(Math.max(...score));
+        const maxScoreIndex = score.indexOf(Math.max(...score))
 
-        console.log("Selected index:", maxScoreIndex);
+        console.log("Selected index:", maxScoreIndex)
 
-        const result = ACNE_TYPE_MAP[maxScoreIndex] || null;
+        const result = ACNE_TYPE_MAP[maxScoreIndex] || null
 
-        console.log("Predicted Acne Type:", result);
+        console.log("Predicted Acne Type:", result)
 
-        return result;
+        return result
 
     } catch (error) {
         if (error instanceof Error) {
-            throw new Error(`Error occurred: ${error.message}`);
+            throw new Error(`Error occurred: ${error.message}`)
         } else {
-            throw new Error('An unknown error occurred');
+            throw new Error("An unknown error occurred")
         }
     }
 }
 
 export const uploadImageToStorage = async (image: Buffer) => {
-    const timestamp = moment().format('YYYY-MM-DD_at_HH.mm.ss');
-    const uuid = uuidv4().slice(0, 8);
+    const timestamp = moment().format("YYYY-MM-DD_at_HH.mm.ss")
+    const uuid = uuidv4().slice(0, 8)
 
-    const fileName = `acne_image_${timestamp}_${uuid}.jpg`;
-    const file = bucket.file(fileName);
+    const fileName = `acne_image_${timestamp}_${uuid}.jpg`
+    const file = bucket.file(fileName)
 
     const stream = file.createWriteStream({
         metadata: {
-        contentType: 'image/jpeg',
+            contentType: "image/jpeg",
         },
         resumable: false,
-    });
+    })
 
     return new Promise<string>((resolve, reject) => {
-        stream.on('error', (err: Error) => {
-            reject(new Error(`Failed to upload image: ${err.message}`));
-        });
+        stream.on("error", (err: Error) => {
+            reject(new Error(`Failed to upload image: ${err.message}`))
+        })
 
-        stream.on('finish', async () => {
-            await file.makePublic();
-            resolve(`https://storage.googleapis.com/${bucket.name}/${file.name}`);
-        });
+        stream.on("finish", async () => {
+            await file.makePublic()
+            resolve(`https://storage.googleapis.com/${bucket.name}/${file.name}`)
+        })
 
-        stream.end(image);
-    });
+        stream.end(image)
+    })
 }
 
 export const createImageSubmission = async (
@@ -121,4 +122,10 @@ export const getImagesByAcneType = async (userId: string, acneType: ACNE_TYPE): 
             created_at: data.created_at,
         }
     })
+}
+
+export const addModelToApp = async (app: Express) => {
+    const model = await loadModel()
+    app.set("model", model)
+    console.log("Model loaded successfully")
 }
