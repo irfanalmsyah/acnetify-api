@@ -60,6 +60,7 @@
     "@utils": "build/utils",
     "@validators": "build/validators",
     "@config": "build/config",
-    "@schemas": "build/schemas"
+    "@schemas": "build/schemas",
+    "@server": "build/server.js"
   }
 }
