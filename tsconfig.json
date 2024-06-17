@@ -114,6 +114,7 @@
       "@validators/*": ["validators/*"],
       "@config/*": ["config/*"],
       "@schemas/*": ["schemas/*"],
+      "@server": ["./server"],
     },
   },
   "include": ["src/**/*"],

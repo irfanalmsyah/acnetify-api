@@ -8,7 +8,7 @@ import { bucket } from "./bucket.service"
 import { Express } from "express"
 
 import * as tf from "@tensorflow/tfjs-node"
-import app from "server"
+import app from "@server"
 import { loadModel } from "./loadmodel.service"
 
 
